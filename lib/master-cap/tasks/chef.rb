@@ -121,7 +121,7 @@ Capistrano::Configuration.instance.load do
     end
 
     task :purge_cache, :roles => chef_role do
-      run "sudo rm -rf /opt/master-chef/var/git_repos"
+      run "sudo rm -rf /opt/master-chef/var/git_repos /tmp/master_chef_repos"
     end
 
     task :local, :roles => chef_role  do

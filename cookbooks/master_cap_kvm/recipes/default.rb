@@ -49,25 +49,28 @@ unless node.master_cap_kvm.hugepages == "disable"
 
 end
 
-storage = <<-EOF
+libvirt_gid = capture 'getent group libvirt | cut -d: -f3'
+node.master_cap_kvm.storages.each do |pool, path|
+  storage = <<-EOF
 <pool type='dir'>
   <name>default</name>
   <source>
   </source>
   <target>
-    <path>#{node.master_cap_kvm.tank}</path>
+    <path>#{path}</path>
     <permissions>
       <mode>0770</mode>
       <owner>0</owner>
-      <group>##ID##</group>
+      <group>#{libvirt_gid}</group>
     </permissions>
   </target>
 </pool>
 EOF
 
-execute "create default pool" do
-  command "echo \"#{storage.gsub(/\n/, '')}\" | sed -e \"s/##ID##/$(cat /etc/group | grep libvirt | head -n1 | cut -d: -f3)/\" > /tmp/storage.xml && virsh pool-define /tmp/storage.xml && virsh pool-autostart default && virsh pool-start default && rm /tmp/storage.xml"
-  not_if "virsh pool-list | fgrep default | fgrep active | fgrep -q yes"
+  execute "create #{pool} pool" do
+    command "echo \"#{storage.gsub(/\n/, '')}\" > /tmp/storage.xml && virsh pool-define /tmp/storage.xml && virsh pool-autostart #{pool} && virsh pool-start #{pool} && rm /tmp/storage.xml"
+    not_if "virsh pool-list | egrep -q '#{pool}\s+active\s+yes'"
+  end
 end
 
 if node.master_cap_kvm.allow_chef_to_use_virsh

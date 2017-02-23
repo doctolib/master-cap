@@ -49,11 +49,11 @@ unless node.master_cap_kvm.hugepages == "disable"
 
 end
 
-libvirt_gid = capture 'getent group libvirt | cut -d: -f3'
+libvirt_gid = `getent group libvirt | cut -d: -f3`.strip
 node.master_cap_kvm.storages.each do |pool, path|
   storage = <<-EOF
 <pool type='dir'>
-  <name>default</name>
+  <name>#{pool}</name>
   <source>
   </source>
   <target>

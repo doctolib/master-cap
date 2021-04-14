@@ -7,6 +7,7 @@ Capistrano::Configuration.instance.load do
   namespace :chef do
 
     set :master_chef_path, fetch(:master_chef_path, '../master-chef')
+    set :ssh_options, { :forward_agent => true }
 
     def repos node = nil
       repo_manager = Object.const_get(fetch(:git_repos_manager_class, 'EmptyGitReposManager')).new(self)
